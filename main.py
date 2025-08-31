@@ -17,7 +17,6 @@ while True:
 
     frame = cv2.flip(frame, 1)
     
-    # Use the small frame optimization for face detection
     scale = config.DETECTION_SCALE_FACTOR
     small_frame = cv2.resize(frame, (frame.shape[1] // scale, frame.shape[0] // scale))
     gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
@@ -26,7 +25,6 @@ while True:
 
     face_center_x = None
     if len(faces) > 0:
-        # Get the center of the first detected face
         (x, y, w, h) = [v * scale for v in faces[0]]
         face_center_x = x + w // 2
 
@@ -35,8 +33,12 @@ while True:
 
     cv2.imshow('Face Pong', frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # --- KEYBOARD INPUT ---
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
         break
+    if key == ord('r') and game_manager.game_state == "game_over":
+        game_manager.reset_game()
 
 # --- CLEANUP ---
 video_capture.release()
