@@ -1,53 +1,75 @@
 import cv2
-import random
 import config
 
-class Fruit:
-    def __init__(self, settings):
-        self.points = settings["points"]
-        self.speed = settings["speed"]
-        self.image = cv2.imread(settings["image_path"], cv2.IMREAD_UNCHANGED)
-        if self.image is None:
-            print(f"Error: Could not load image from {settings['image_path']}")
-            self.width, self.height = 0, 0
-        else:
-            target_size = settings["radius"] * 2
-            self.image = cv2.resize(self.image, (target_size, target_size), interpolation=cv2.INTER_AREA)
-            self.width = self.image.shape[1]
-            self.height = self.image.shape[0]
-            self.has_alpha = self.image.shape[2] == 4
+class Paddle:
+    def __init__(self):
+        """Initializes the paddle in the bottom-center of the screen."""
+        self.w = config.PADDLE_WIDTH
+        self.h = config.PADDLE_HEIGHT
+        self.color = config.PADDLE_COLOR
+        # Start in the middle of the screen horizontally
+        self.x = (config.SCREEN_WIDTH - self.w) // 2
+        # Position it near the bottom of the screen
+        self.y = config.SCREEN_HEIGHT - self.h - 40
+
+    def update(self, face_center_x):
+        """Maps face position to paddle position and smoothly moves the paddle."""
+        # --- 1. Define the control zone for the face ---
+        control_zone_width = config.SCREEN_WIDTH * config.FACE_CONTROL_ZONE_PERCENT
+        zone_margin = (config.SCREEN_WIDTH - control_zone_width) / 2
+        input_min = zone_margin
+        input_max = config.SCREEN_WIDTH - zone_margin
+
+        # --- 2. Clamp the face position to be within the control zone ---
+        clamped_face_x = max(input_min, min(face_center_x, input_max))
+
+        # --- 3. Map the clamped face position to the full screen width for the paddle ---
+        # Calculate how far into the control zone the face is (as a percentage from 0.0 to 1.0)
+        input_range = input_max - input_min
+        percent_in_zone = (clamped_face_x - input_min) / input_range
         
+        # Define the output range for the paddle's x-position
+        output_max = config.SCREEN_WIDTH - self.w
+        output_min = 0
+        output_range = output_max - output_min
+
+        # Calculate the target paddle position
+        target_x = output_min + (percent_in_zone * output_range)
+        
+        # --- 4. Apply the smoothing logic to the new target position ---
+        # Note: We use self.x here, not the paddle_center, for direct movement
+        move_x = (target_x - self.x) * config.PADDLE_SMOOTHING
+        self.x += int(move_x)
+
+        # Keep the paddle within the screen bounds (as a final safeguard)
+        if self.x < 0:
+            self.x = 0
+        if self.x + self.w > config.SCREEN_WIDTH:
+            self.x = config.SCREEN_WIDTH - self.w
+
+    def draw(self, frame):
+        """Draws the paddle on the frame."""
+        cv2.rectangle(frame, (self.x, self.y), (self.x + self.w, self.y + self.h), self.color, -1)
+
+class Ball:
+    def __init__(self):
+        """Initializes the ball in the center of the screen with a velocity."""
+        self.radius = config.BALL_RADIUS
+        self.color = config.BALL_COLOR
         self.reset()
 
     def reset(self):
-        """Resets fruit's position, respecting the playable area."""
-        self.y = -self.height
-        
-        # --- THIS IS THE UPDATED LOGIC ---
-        play_area_width = config.SCREEN_WIDTH * config.FRUIT_PLAY_AREA_PERCENT
-        margin = (config.SCREEN_WIDTH - play_area_width) / 2
-        min_x = int(margin)
-        max_x = int(config.SCREEN_WIDTH - margin - self.width)
-        self.x = random.randint(min_x, max_x)
-        # --- END OF UPDATE ---
+        """Resets the ball to the center with its initial velocity."""
+        self.x = config.SCREEN_WIDTH // 2
+        self.y = config.SCREEN_HEIGHT // 2
+        self.vx = config.BALL_INITIAL_VX
+        self.vy = config.BALL_INITIAL_VY
 
     def move(self):
-        self.y += self.speed
+        """Updates the ball's position based on its velocity."""
+        self.x += self.vx
+        self.y += self.vy
 
     def draw(self, frame):
-        if self.image is None: return
-        x_int, y_int = int(self.x), int(self.y)
-        y1, y2 = max(0, y_int), min(config.SCREEN_HEIGHT, y_int + self.height)
-        x1, x2 = max(0, x_int), min(config.SCREEN_WIDTH, x_int + self.width)
-        
-        if y1 >= y2 or x1 >= x2: return
-        img_y1, img_y2 = max(0, -y_int), self.height - max(0, (y_int + self.height) - config.SCREEN_HEIGHT)
-        img_x1, img_x2 = max(0, -x_int), self.width - max(0, (x_int + self.width) - config.SCREEN_WIDTH)
-        visible_slice = self.image[img_y1:img_y2, img_x1:img_x2]
-        roi = frame[y1:y2, x1:x2]
-
-        if self.has_alpha and visible_slice.shape[0] > 0 and visible_slice.shape[1] > 0:
-            alpha_s = visible_slice[:, :, 3] / 255.0
-            alpha_l = 1.0 - alpha_s
-            for c in range(0, 3):
-                roi[:, :, c] = (alpha_s * visible_slice[:, :, c] + alpha_l * roi[:, :, c])
+        """Draws the ball on the frame."""
+        cv2.circle(frame, (self.x, self.y), self.radius, self.color, -1)
