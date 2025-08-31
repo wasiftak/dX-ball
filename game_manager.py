@@ -1,54 +1,48 @@
-import cv2
-import random
 import config
-from game_objects import Fruit
+from game_objects import Paddle, Ball
 
 class GameManager:
     def __init__(self):
-        self.score = 0
-        self.fruits = [] # We now manage a list of fruits
-        self.fruit_types = [
-            config.APPLE_SETTINGS,
-            config.BANANA_SETTINGS,
-            config.STRAWBERRY_SETTINGS
-        ]
+        self.paddle = Paddle()
+        self.ball = Ball()
 
-    def spawn_fruit(self):
-        """Spawns a new fruit of a random type and adds it to our list."""
-        if random.random() < config.FRUIT_SPAWN_RATE:
-            # Choose a random fruit type from our list of settings
-            random_fruit_settings = random.choice(self.fruit_types)
-            self.fruits.append(Fruit(random_fruit_settings))
+    def update(self, frame, face_center_x):
+        """Main update loop for the game manager."""
+        # Update paddle position if a face is detected
+        if face_center_x:
+            self.paddle.update(face_center_x)
+        
+        # Move the ball
+        self.ball.move()
+        
+        # Check for collisions
+        self.check_collisions()
 
-    def update_and_draw_fruits(self, frame):
-        """Moves, draws, and removes off-screen fruits."""
-        # We iterate over a copy of the list to safely remove items
-        for fruit in self.fruits[:]:
-            fruit.move()
-            fruit.draw(frame)
-            # Remove fruit if it goes off the bottom of the screen
-            if fruit.y > config.SCREEN_HEIGHT:
-                self.fruits.remove(fruit)
+        # Draw the objects
+        self.paddle.draw(frame)
+        self.ball.draw(frame)
 
-    def check_collisions(self, catcher_rect):
-        """Checks for collisions between the catcher and any fruit."""
-        for fruit in self.fruits[:]:
-            cx, cy, cw, ch = catcher_rect
-            ax, ay, aw, ah = fruit.x, fruit.y, fruit.width, fruit.height
+    def check_collisions(self):
+        """Handles collisions between the ball, walls, and paddle."""
+        b = self.ball
+        p = self.paddle
 
-            # AABB collision detection
-            if (cx < ax + aw and cx + cw > ax and
-                cy < ay + ah and cy + ch > ay):
-                self.increase_score(fruit.points)
-                self.fruits.remove(fruit) # Remove the caught fruit
+        # Wall collisions (left and right)
+        if b.x - b.radius <= 0 or b.x + b.radius >= config.SCREEN_WIDTH:
+            b.vx *= -1 # Reverse horizontal velocity
 
-    def increase_score(self, points):
-        """Increases the score by the given number of points."""
-        self.score += points
+        # Wall collision (top)
+        if b.y - b.radius <= 0:
+            b.vy *= -1 # Reverse vertical velocity
 
-    def draw_score(self, frame):
-        """Draws the current score on the frame."""
-        score_text = f"Score: {self.score}"
-        cv2.putText(frame, score_text, config.SCORE_POSITION,
-                    config.SCORE_FONT, config.SCORE_FONT_SCALE,
-                    config.SCORE_COLOR, config.SCORE_FONT_THICKNESS)
+        # Paddle collision (AABB check)
+        # Check if the ball's bounding box intersects with the paddle's
+        if (b.x > p.x and b.x < p.x + p.w and
+            b.y + b.radius > p.y and b.y - b.radius < p.y + p.h):
+            # Only trigger collision if ball is moving down
+            if b.vy > 0:
+                b.vy *= -1 # Reverse vertical velocity
+
+        # For now, we will reset the ball if it goes off the bottom
+        if b.y - b.radius > config.SCREEN_HEIGHT:
+            b.reset()
