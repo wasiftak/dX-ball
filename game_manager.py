@@ -38,8 +38,8 @@ class GameManager:
             self.update_effects()
             self.check_collisions()
         elif self.game_state == "game_over":
-            # --- PERFECTLY CENTERED RESTART TEXT ---
-            # Draw the main "GAME OVER" text
+     
+                 # Draw the main "GAME OVER" text
             self.draw_text_with_outline(frame, "GAME OVER", config.GAME_OVER_POSITION, config.UI_FONT, 2.5, config.UI_COLOR, 5)
             
             # Define the restart text and get its size
@@ -85,13 +85,13 @@ class GameManager:
     def check_collisions(self):
         b = self.ball
         p = self.paddle
-        if b.x - b.radius <= 0 or b.x + b.radius >= config.SCREEN_WIDTH: b.vx *= -1
-        if b.y - b.radius <= 0: b.vy *= -1
-        if (b.x > p.x and b.x < p.x + p.w and b.y + b.radius > p.y and b.y - b.radius < p.y + p.h and b.vy > 0):
+        if b.x - b.radius <= 0 or b.x + b.radius >= config.SCREEN_WIDTH: b.vx *= -1 #left/right walls, so reverse x velocity
+        if b.y - b.radius <= 0: b.vy *= -1  #top wall, so reverse y velocity
+        if (b.x > p.x and b.x < p.x + p.w and b.y + b.radius > p.y and b.y - b.radius < p.y + p.h and b.vy > 0):  #checks for collision with paddle
             b.vy *= -1
             paddle_center_x = p.x + p.w / 2
-            offset = b.x - paddle_center_x
-            normalized_offset = offset / (p.w / 2)
+            offset = b.x - paddle_center_x  #negative if left, positive if right
+            normalized_offset = offset / (p.w / 2)   #converts offset to -1 to 1 range
             b.vx = normalized_offset * config.PADDLE_BOUNCE_INTENSITY
             self.score += config.POINTS_PER_HIT
             self.hits_this_level += 1
@@ -99,7 +99,7 @@ class GameManager:
                 self.level_up()
             if random.random() < config.POWERUP_SPAWN_CHANCE:
                 self.spawn_powerup()
-        if b.y - b.radius > config.SCREEN_HEIGHT:
+        if b.y - b.radius > config.SCREEN_HEIGHT:   #gone past bottom edge
             self.lives -= 1
             self.deactivate_all_effects()
             if self.lives <= 0: self.game_state = "game_over"

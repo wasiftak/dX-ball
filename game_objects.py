@@ -5,24 +5,24 @@ import numpy as np
 
 class Paddle:
     def __init__(self):
-        self.base_w = config.PADDLE_WIDTH
+        self.base_w = config.PADDLE_WIDTH    #to retain shape after power-up
         self.w = self.base_w
         self.h = config.PADDLE_HEIGHT
         self.x = (config.SCREEN_WIDTH - self.w) // 2
         self.y = config.SCREEN_HEIGHT - self.h - 40
     def update(self, face_center_x):
-        control_zone_width = config.SCREEN_WIDTH * config.FACE_CONTROL_ZONE_PERCENT
+        control_zone_width = config.SCREEN_WIDTH * config.FACE_CONTROL_ZONE_PERCENT  # 50% of screen
         zone_margin = (config.SCREEN_WIDTH - control_zone_width) / 2
         input_min = zone_margin
         input_max = config.SCREEN_WIDTH - zone_margin
-        clamped_face_x = max(input_min, min(face_center_x, input_max))
+        clamped_face_x = max(input_min, min(face_center_x, input_max))  #position stops at edges of control zone
         input_range = input_max - input_min
-        percent_in_zone = (clamped_face_x - input_min) / input_range
+        percent_in_zone = (clamped_face_x - input_min) / input_range  #converts head position to 0-1 range
         output_max = config.SCREEN_WIDTH - self.w
         output_min = 0
         output_range = output_max - output_min
-        target_x = output_min + (percent_in_zone * output_range)
-        move_x = (target_x - self.x) * config.PADDLE_SMOOTHING
+        target_x = output_min + (percent_in_zone * output_range)   #maps 0-1 range to paddle position
+        move_x = (target_x - self.x) * config.PADDLE_SMOOTHING     #glides to target
         self.x += int(move_x)
         if self.x < 0: self.x = 0
         if self.x + self.w > config.SCREEN_WIDTH: self.x = config.SCREEN_WIDTH - self.w
@@ -30,7 +30,7 @@ class Paddle:
         x, y, w, h = int(self.x), int(self.y), int(self.w), int(self.h)
         top_color = config.PADDLE_COLOR_TOP
         bottom_color = config.PADDLE_COLOR_BOTTOM
-        for i in range(h):
+        for i in range(h):        #vertical gradient to give 3D effect
             inter_color = [bottom_color[j] + (top_color[j] - bottom_color[j]) * (i / h) for j in range(3)]
             cv2.line(frame, (x, y + i), (x + w, y + i), inter_color, 1)
         cv2.line(frame, (x, y), (x + w, y), config.PADDLE_HIGHLIGHT_COLOR, 2)
@@ -39,7 +39,7 @@ class Paddle:
 class Ball:
     def __init__(self):
         self.radius = config.BALL_RADIUS
-        self.speed_multiplier = 1.0
+        self.speed_multiplier = 1.0   
         self.image = cv2.imread(config.BALL_IMAGE_PATH, cv2.IMREAD_UNCHANGED)
         if self.image is not None:
             self.image = cv2.resize(self.image, (self.radius * 2, self.radius * 2))
@@ -48,14 +48,14 @@ class Ball:
             self.has_alpha = False
         self.reset()
     def reset(self, level=1):
-        self.x = config.SCREEN_WIDTH // 2
+        self.x = config.SCREEN_WIDTH // 2   #centered
         self.y = config.SCREEN_HEIGHT // 2
-        total_speed_increase = (level - 1) * config.BALL_SPEED_INCREASE
+        total_speed_increase = (level - 1) * config.BALL_SPEED_INCREASE  #increases speed with level
         speed_magnitude_x = abs(config.BALL_INITIAL_VX) + total_speed_increase
         speed_magnitude_y = abs(config.BALL_INITIAL_VY) + total_speed_increase
-        self.vy = -speed_magnitude_y
-        self.vx = random.uniform(speed_magnitude_x * 0.3, speed_magnitude_x) * random.choice([-1, 1])
-    def move(self):
+        self.vy = -speed_magnitude_y   #always starts going up
+        self.vx = random.uniform(speed_magnitude_x * 0.3, speed_magnitude_x) * random.choice([-1, 1]) #random left/right
+    def move(self):    #updates position based on velocity
         self.x += self.vx * self.speed_multiplier
         self.y += self.vy * self.speed_multiplier
     def draw(self, frame):
