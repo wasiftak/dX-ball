@@ -10,7 +10,21 @@ class GameManager:
         self.ball = Ball()
         self.powerups = []
         self.active_effects = {}
+        self.high_score = self.load_high_score() ### New: Load high score on startup
         self.reset_game()
+
+    ### New: Function to load high score from a file
+    def load_high_score(self):
+        try:
+            with open(config.HIGH_SCORE_FILE, "r") as f:
+                return int(f.read())
+        except (FileNotFoundError, ValueError):
+            return 0
+    
+    ### New: Function to save high score to a file
+    def save_high_score(self):
+        with open(config.HIGH_SCORE_FILE, "w") as f:
+            f.write(str(self.high_score))
 
     def reset_game(self):
         self.score = 0
@@ -39,16 +53,26 @@ class GameManager:
             self.check_collisions()
         elif self.game_state == "game_over":
      
-                 # Draw the main "GAME OVER" text
+            # Draw the main "GAME OVER" text
             self.draw_text_with_outline(frame, "GAME OVER", config.GAME_OVER_POSITION, config.UI_FONT, 2.5, config.UI_COLOR, 5)
             
+            ### New: Display final score and high score on game over screen
+            final_score_text = f"Your Score: {self.score}"
+            high_score_text = f"High Score: {self.high_score}"
+            score_text_size = cv2.getTextSize(final_score_text, config.UI_FONT, 1.0, 3)[0]
+            highscore_text_size = cv2.getTextSize(high_score_text, config.UI_FONT, 1.0, 3)[0]
+            score_pos_x = (config.SCREEN_WIDTH - score_text_size[0]) // 2
+            highscore_pos_x = (config.SCREEN_WIDTH - highscore_text_size[0]) // 2
+            self.draw_text_with_outline(frame, final_score_text, (score_pos_x, config.HIGH_SCORE_POSITION[1]), config.UI_FONT, 1.0, config.UI_COLOR, 3)
+            self.draw_text_with_outline(frame, high_score_text, (highscore_pos_x, config.HIGH_SCORE_POSITION[1] + 40), config.UI_FONT, 1.0, config.UI_COLOR, 3)
+
             # Define the restart text and get its size
             restart_text = "Press 'R' to Restart"
             text_size = cv2.getTextSize(restart_text, config.UI_FONT, 1.0, 3)[0]
             
             # Calculate the centered position for the restart text
             restart_pos_x = (config.SCREEN_WIDTH - text_size[0]) // 2
-            restart_pos_y = config.GAME_OVER_POSITION[1] + 60
+            restart_pos_y = config.HIGH_SCORE_POSITION[1] + 100
             
             # Draw the restart text
             self.draw_text_with_outline(frame, restart_text, (restart_pos_x, restart_pos_y), config.UI_FONT, 1.0, config.UI_COLOR, 3)
@@ -72,9 +96,6 @@ class GameManager:
         self.draw_text_with_outline(frame, score_text, config.SCORE_POSITION, config.UI_FONT, config.UI_FONT_SCALE, config.UI_COLOR, config.UI_FONT_THICKNESS)
         self.draw_text_with_outline(frame, lives_text, config.LIVES_POSITION, config.UI_FONT, config.UI_FONT_SCALE, config.UI_COLOR, config.UI_FONT_THICKNESS)
         self.draw_text_with_outline(frame, level_text, config.LEVEL_POSITION, config.UI_FONT, config.UI_FONT_SCALE, config.UI_COLOR, config.UI_FONT_THICKNESS)
-
-        # --- REMOVED DEBUG TEXT ---
-        # The "Hits:" counter is no longer drawn here.
 
         effect_text = ""
         for effect, end_time in self.active_effects.items():
@@ -102,8 +123,14 @@ class GameManager:
         if b.y - b.radius > config.SCREEN_HEIGHT:   #gone past bottom edge
             self.lives -= 1
             self.deactivate_all_effects()
-            if self.lives <= 0: self.game_state = "game_over"
-            else: self.ball.reset(level=self.level)
+            if self.lives <= 0:
+                self.game_state = "game_over"
+                ### New: Check and save high score when the game ends
+                if self.score > self.high_score:
+                    self.high_score = self.score
+                    self.save_high_score()
+            else:
+                self.ball.reset(level=self.level)
             
     def spawn_powerup(self):
         max_for_level = 0

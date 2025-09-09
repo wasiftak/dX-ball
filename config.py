@@ -1,4 +1,8 @@
 import cv2
+import os ### New: Import the os module to handle file paths robustly
+
+### New: Get the absolute path to the directory where this script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Screen dimensions
 SCREEN_WIDTH = 1280
@@ -6,14 +10,16 @@ SCREEN_HEIGHT = 720
 
 # Performance settings
 DETECTION_SCALE_FACTOR = 4   
-FACE_CASCADE_PATH = "assets/haarcascade_frontalface_alt.xml"
+### New: Create a robust, absolute path to the cascade file
+FACE_CASCADE_PATH = os.path.join(BASE_DIR, "assets", "haarcascade_frontalface_alt.xml")
 FACE_CONTROL_ZONE_PERCENT = 0.5 
 
 # --- Game Rule Settings ---
 INITIAL_LIVES = 3
 POINTS_PER_HIT = 10
-HITS_PER_LEVEL = 5 
+HITS_PER_LEVEL = 2 
 BALL_SPEED_INCREASE = 2.0
+HIGH_SCORE_FILE = os.path.join(BASE_DIR, "highscore.txt") ### New: Create a robust path for the high score file
 
 # --- UI Settings ---
 UI_FONT = cv2.FONT_HERSHEY_DUPLEX
@@ -24,7 +30,8 @@ UI_OUTLINE_COLOR = (0, 0, 0) # Black outline for text
 SCORE_POSITION = (30, 50)    # Top-left corner
 LIVES_POSITION = (SCREEN_WIDTH - 180, 50)  # Top-right corner
 LEVEL_POSITION = (SCREEN_WIDTH // 2 - 80, 50)  # Top-center
-GAME_OVER_POSITION = (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2)  # Centered
+GAME_OVER_POSITION = (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2 - 50)  # Centered, adjusted for high score
+HIGH_SCORE_POSITION = (GAME_OVER_POSITION[0], GAME_OVER_POSITION[1] + 120)
 POWERUP_TIMER_POSITION = (SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT - 20)  # Bottom-center
 
 # --- Paddle Settings ---
@@ -40,7 +47,7 @@ PADDLE_HIGHLIGHT_COLOR = (255, 255, 255)
 
 # --- Ball Settings ---
 BALL_RADIUS = 18 
-BALL_IMAGE_PATH = "assets/ball_3d.png"
+BALL_IMAGE_PATH = os.path.join(BASE_DIR, "assets", "ball_3d.png") ### New: Create a robust path
 BALL_INITIAL_VX = 7.2
 BALL_INITIAL_VY = -7.2
 BALL_SLOW_FACTOR = 0.5    #for power-up
@@ -54,10 +61,13 @@ POWERUP_SPEED_X_MAX = 3
 POWERUP_DURATION_SECONDS = 8.0
 POWERUP_MAX_ON_SCREEN = {1: 0, 2: 1, 5: 2, 8: 3}
 POWERUP_UNLOCK_LEVELS = {"wide_paddle": 2, "shrink_paddle": 3, "slow_ball": 4, "fast_ball": 5, "extra_life": 6}
+
+### New: Create robust paths for all power-up images
 POWERUP_TYPES = {
-    "wide_paddle": {"image": "assets/powerup_wide.png"},
-    "extra_life": {"image": "assets/powerup_life.png"},
-    "slow_ball": {"image": "assets/powerup_slow.png"},
-    "shrink_paddle": {"image": "assets/powerup_shrink.png"},
-    "fast_ball": {"image": "assets/powerup_fast.png"}
+    "wide_paddle": {"image": os.path.join(BASE_DIR, "assets", "powerup_wide.png")},
+    "extra_life": {"image": os.path.join(BASE_DIR, "assets", "powerup_life.png")},
+    "slow_ball": {"image": os.path.join(BASE_DIR, "assets", "powerup_slow.png")},
+    "shrink_paddle": {"image": os.path.join(BASE_DIR, "assets", "powerup_shrink.png")},
+    "fast_ball": {"image": os.path.join(BASE_DIR, "assets", "powerup_fast.png")}
 }
+
