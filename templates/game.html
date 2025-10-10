@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DX-BALL Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function checkStatus() {
+            fetch("/status")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.game_state === "game_over") {
+                        window.location.href = "/gameover";
+                    }
+                });
+        }
+        setInterval(checkStatus, 1000); 
+    </script>
+</head>
+<body class="gradient-bg">
+    <div class="centered">
+        <h1 class="title">DX-BALL</h1>
+        <img src="{{ url_for('video_feed') }}" width="960" height="540">
+    </div>
+</body>
+</html>
