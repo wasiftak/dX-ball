@@ -4,14 +4,51 @@
     <meta charset="UTF-8">
     <title>DX-BALL - Game Over</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Star animation styles */
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body class="gradient-bg">
-    <div class="centered box">
-        <h1 class="title">GAME OVER</h1>
-        <p class="score-text">Your Score: <strong>{{ score }}</strong></p>
-        <p class="highscore-text">High Score: <strong>{{ high_score }}</strong></p>
-        <br>
-        <a href="{{ url_for('game') }}" class="btn">Play Again</a>
+    <div class="content-wrapper">
+        <div class="centered box">
+            <h1 class="title">GAME OVER</h1>
+            <p class="score-text">Your Score: <strong>{{ score }}</strong></p>
+            <p class="highscore-text">High Score: <strong>{{ high_score }}</strong></p>
+            <br><br>
+            <a href="{{ url_for('game') }}" class="btn">Play Again</a>
+        </div>
     </div>
+
+    <script>
+        // Star generation script
+        function createStars() {
+            const container = document.body;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+        createStars();
+    </script>
 </body>
 </html>
