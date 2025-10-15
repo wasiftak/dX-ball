@@ -68,19 +68,3 @@ python main.py
 ```
 ```
 
-python app.py
-Once the server is running, open your web browser and go to http://127.0.0.1:5000 to play.
-
-🕹️ How to Play
-Start the Game: Open the game in your browser and click "Start Game."
-
-Control the Paddle: Move your head left and right to control the paddle.
-
-Score Points: Hit the ball to score points. The level increases after every 5 paddle hits.
-
-Power-Ups: Catch falling icons with your paddle to get power-ups (or penalties!).
-
-Stay Alive: Don't let the ball fall past your paddle, or you'll lose a life.
-
-Game Over: When you run out of lives, the game will end and display your final score.
-
