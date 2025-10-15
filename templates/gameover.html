@@ -2,27 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Game Over</title>
+    <title>DX-BALL - Game Over</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script>
-        let countdown = 3;
-        function updateCountdown() {
-            document.getElementById("countdown").innerText = countdown;
-            if (countdown === 0) {
-                window.location.href = "{{ url_for('game') }}";
-            } else {
-                countdown--;
-                setTimeout(updateCountdown, 1000);
-            }
-        }
-        window.onload = updateCountdown;
-    </script>
 </head>
 <body class="gradient-bg">
     <div class="centered box">
-        <h1>GAME OVER</h1>
-        <p>Your Score: <strong>{{ score }}</strong></p>
-        <a href="{{ url_for('game') }}" class="btn">Restart Now</a>
+        <h1 class="title">GAME OVER</h1>
+        <p class="score-text">Your Score: <strong>{{ score }}</strong></p>
+        <p class="highscore-text">High Score: <strong>{{ high_score }}</strong></p>
+        <br>
+        <a href="{{ url_for('game') }}" class="btn">Play Again</a>
     </div>
 </body>
 </html>
