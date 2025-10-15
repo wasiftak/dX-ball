@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DX-BALL Game</title>
+    <title>DX-BALL - In-Game</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>
         function checkStatus() {
@@ -19,8 +19,9 @@
 </head>
 <body class="gradient-bg">
     <div class="centered">
-        <h1 class="title">DX-BALL</h1>
-        <img src="{{ url_for('video_feed') }}" width="960" height="540">
+        <div class="game-container">
+            <img src="{{ url_for('video_feed') }}" width="1280" height="720">
+        </div>
     </div>
 </body>
 </html>
